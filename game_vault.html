@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game Vault — Browser Arcade</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0e14;--panel:#151a24;--panel2:#1d2431;--text:#f2f5fb;--muted:#a7b0c0;--accent:#a3e635;--border:#2b3444}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#182236 0,var(--bg) 55%);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+header,main,footer{max-width:1180px;margin:auto}header{padding:30px 20px 18px}.eyebrow{color:var(--accent);font-size:.78rem;letter-spacing:.18em;font-weight:800;text-transform:uppercase}h1{margin:8px 0;font-size:clamp(2rem,5vw,3.5rem)}.sub{color:var(--muted);margin:0;max-width:700px}main{padding:0 20px 40px}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0}input,button{font:inherit;border-radius:12px}input{flex:1 1 230px;min-width:0;background:var(--panel);color:var(--text);border:1px solid var(--border);padding:12px 14px}button,.link-button{border:1px solid var(--border);padding:10px 14px;color:var(--text);background:var(--panel2);cursor:pointer;text-decoration:none;display:inline-flex;justify-content:center;align-items:center;gap:7px;font-weight:700}button:hover,.link-button:hover{border-color:var(--accent)}.primary{background:var(--accent);color:#10140a;border-color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:15px}.card{background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--border);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;min-height:230px}.art{min-height:90px;display:grid;place-items:center;font-size:2.7rem;background:linear-gradient(135deg,#28364b,#141923)}.card-body{padding:15px;display:flex;flex-direction:column;gap:9px;flex:1}.card h2{font-size:1.05rem;margin:0}.card p{color:var(--muted);margin:0;font-size:.9rem}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:6px}.actions button,.actions a{flex:1 1 105px}.note{color:var(--muted);background:#121722;border:1px solid var(--border);padding:13px 15px;border-radius:12px;margin:18px 0}.player-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.player-head h2{margin:0 0 12px}.player-frame{width:100%;height:min(70vh,650px);min-height:320px;background:#05070a;border:1px solid var(--border);border-radius:16px}.empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:16px}footer{padding:0 20px 30px;color:var(--muted);font-size:.85rem}[hidden]{display:none!important}@media(max-width:480px){header{padding-top:22px}.player-frame{min-height:250px;height:55vh}}
+</style>
+</head>
+<body>
+<header><div class="eyebrow">Your personal arcade</div><h1>GAME VAULT<span style="color:var(--accent)">.</span></h1><p class="sub">A collection of browser game links. Try playing here or open the game in a new tab.</p></header>
+<main>
+<div class="toolbar"><input id="search" type="search" placeholder="Search 25 games..." aria-label="Search games"><button id="showAll" type="button">Show all games</button></div>
+<div class="note"><strong>Quick note:</strong> Some sites block embedding. If a game area stays blank use “Open in New Tab.” Some fan ports require game data files you must already own. This page does not bypass school network restrictions.</div>
+<section id="games" class="grid" aria-label="Game library"></section><p id="noResults" class="empty" hidden>No games match that search.</p>
+<section id="playerSection" hidden style="margin-top:30px"><div class="player-head"><h2 id="playerTitle">Now playing</h2><div class="actions"><a id="openCurrent" class="link-button" href="#" target="_blank" rel="noopener noreferrer">↗ Open in New Tab</a><button id="closePlayer" type="button">✕ Close player</button></div></div>
+<iframe id="player" class="player-frame" title="Browser game player" allow="fullscreen; gamepad; autoplay" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-downloads allow-popups" allowfullscreen></iframe>
+<p class="note">If a site refuses to load in this frame, that is the host's security policy. Open it in a new tab instead. Only use game files and ports you're authorized to access.</p></section>
+</main>
+<footer>Game Vault is a launcher, not a game host. Links are provided as supplied; availability and safety depend on each third-party site.</footer>
+<script>
+const games = [
+      {
+        title: "BO1 Zombies",
+        description: "Call of Duty Zombies",
+        emoji: "🧟",
+        url: "https://vel.gg/bo1z"
+      },
+      {
+        title: "Moon",
+        description: "Zombies map",
+        emoji: "🌙",
+        url: "https://moon-zombies.pages.dev"
+      },
+      {
+        title: "Kino der Toten",
+        description: "Zombies map",
+        emoji: "🎭",
+        url: "https://kino-der-toten.pages.dev"
+      },
+      {
+        title: "BO3 Cheese Cube",
+        description: "Black Ops 3 fan game",
+        emoji: "🧀",
+        url: "https://cheese-cube.pages.dev"
+      },
+      {
+        title: "Black Ops 2",
+        description: "Call of Duty fan project",
+        emoji: "🎯",
+        url: "https://vibeslops.luckeysystems.com"
+      },
+      {
+        title: "Modern Warfare 2",
+        description: "Modern Warfare fan project",
+        emoji: "🔫",
+        url: "https://ovz-game-production.up.railway.app"
+      },
+      {
+        title: "Skate 3",
+        description: "Skateboarding",
+        emoji: "🛹",
+        url: "https://skate.aaddpp.lol"
+      },
+      {
+        title: "Skate Rust",
+        description: "Skateboarding / browser game",
+        emoji: "🛹",
+        url: "https://global-terror.net"
+      },
+      {
+        title: "CS Surf",
+        description: "Surf movement game",
+        emoji: "🏄",
+        url: "https://surfd.net"
+      },
+      {
+        title: "Halo CE",
+        description: "Halo: Combat Evolved",
+        emoji: "🪖",
+        url: "https://mitchellhynes.com/halo"
+      },
+      {
+        title: "Halo CE Mobile",
+        description: "Mobile-friendly Halo project",
+        emoji: "📱",
+        url: "https://hcemobile.com"
+      },
+      {
+        title: "PES 6",
+        description: "Football / soccer",
+        emoji: "⚽",
+        url: "https://pes6.optijuegos.net"
+      },
+      {
+        title: "GTA 5",
+        description: "Archived browser project",
+        emoji: "🚗",
+        url: "https://web.archive.org/web/20261006055917/https://playgta5.com/"
+      },
+      {
+        title: "GTA Vice City",
+        description: "Open-world action",
+        emoji: "🌴",
+        url: "https://joncodeofficial.github.io/gta-vice-city-wasm"
+      },
+      {
+        title: "The Simpsons: Hit & Run",
+        description: "Simpsons fan port",
+        emoji: "🍩",
+        url: "https://shar-wasm.cjoseph.workers.dev/?skipmovie"
+      },
+      {
+        title: "Quake 1",
+        description: "Classic FPS",
+        emoji: "👾",
+        url: "https://q1.pieter.com"
+      },
+      {
+        title: "Quake 2",
+        description: "Classic FPS",
+        emoji: "👾",
+        url: "https://q2.pieter.com"
+      },
+      {
+        title: "Quake 3",
+        description: "Arena FPS",
+        emoji: "👾",
+        url: "https://q3.pieter.com"
+      },
+      {
+        title: "Return to Castle Wolfenstein",
+        description: "Classic FPS",
+        emoji: "🐺",
+        url: "https://rtcw.pieter.com"
+      },
+      {
+        title: "Unreal Tournament",
+        description: "Arena FPS",
+        emoji: "⚡",
+        url: "https://ut.pieter.com"
+      },
+      {
+        title: "Half-Life",
+        description: "Classic FPS",
+        emoji: "🧪",
+        url: "https://pixelsuft.github.io/hl/"
+      },
+      {
+        title: "Half-Life / CS 1.6",
+        description: "Xash3D browser project",
+        emoji: "💣",
+        url: "https://x8bitrain.github.io/webXash/"
+      },
+      {
+        title: "Diablo",
+        description: "Action RPG",
+        emoji: "🗡️",
+        url: "https://johnimril.github.io/diablo_web/"
+      },
+      {
+        title: "Hedgewars",
+        description: "Turn-based strategy",
+        emoji: "🦔",
+        url: "https://webwars.link"
+      },
+      {
+        title: "More GTA / Minecraft",
+        description: "Fan ports; some may need game files",
+        emoji: "🧱",
+        url: "https://wasmarcade.com/"
+      }
+];
+const grid=document.getElementById("games"),search=document.getElementById("search"),noResults=document.getElementById("noResults"),playerSection=document.getElementById("playerSection"),player=document.getElementById("player"),playerTitle=document.getElementById("playerTitle"),openCurrent=document.getElementById("openCurrent");
+function safeHttpsUrl(value){try{const u=new URL(value);return u.protocol==="https:"?u.href:null}catch{return null}}
+function playGame(game){const url=safeHttpsUrl(game.url);if(!url){alert("This link isn't a valid HTTPS URL.");return}playerTitle.textContent="Now playing: "+game.title;openCurrent.href=url;player.src=url;playerSection.hidden=false;playerSection.scrollIntoView({behavior:"smooth",block:"start"})}
+function renderGames(){const term=search.value.trim().toLowerCase(),filtered=games.filter(g=>(g.title+" "+g.description).toLowerCase().includes(term));grid.replaceChildren();noResults.hidden=filtered.length>0;filtered.forEach(game=>{const card=document.createElement("article");card.className="card";const art=document.createElement("div");art.className="art";art.setAttribute("aria-hidden","true");art.textContent=game.emoji||"🎮";const body=document.createElement("div");body.className="card-body";const title=document.createElement("h2");title.textContent=game.title;const desc=document.createElement("p");desc.textContent=game.description||"Browser game";const actions=document.createElement("div");actions.className="actions";const play=document.createElement("button");play.className="primary";play.type="button";play.textContent="▶ Play Here";play.addEventListener("click",()=>playGame(game));const open=document.createElement("a");open.className="link-button";open.textContent="↗ New Tab";open.href=safeHttpsUrl(game.url)||"#";open.target="_blank";open.rel="noopener noreferrer";if(!safeHttpsUrl(game.url))open.addEventListener("click",e=>e.preventDefault());actions.append(play,open);body.append(title,desc,actions);card.append(art,body);grid.append(card)})}
+search.addEventListener("input",renderGames);document.getElementById("showAll").addEventListener("click",()=>{search.value="";renderGames()});document.getElementById("closePlayer").addEventListener("click",()=>{player.src="about:blank";playerSection.hidden=true});renderGames();
+</script>
+</body>
+</html>
